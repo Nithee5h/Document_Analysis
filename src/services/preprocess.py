@@ -11,7 +11,7 @@ class ImagePreprocessor:
         """
         img = cv2.imread(str(image_path))
         if img is None:
-            raise ValueError("Unable to read image")
+            raise ValueError(f"Unable to read image file: {image_path} (file may be corrupted or in an unsupported format)")
 
         # Convert to grayscale
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

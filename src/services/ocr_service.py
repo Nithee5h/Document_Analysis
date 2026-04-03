@@ -39,6 +39,14 @@ class OCRService:
     def _tesseract_extract(self, image_path: Path) -> tuple[str, bool]:
         """Extract text using Tesseract OCR with multiple strategies."""
         try:
+            # First, validate that we can load the image at all
+            try:
+                test_img = Image.open(image_path)
+                test_img.verify()
+            except Exception as e:
+                logger.error(f"Image file cannot be loaded or is corrupted: {image_path} - {str(e)}")
+                raise ValueError(f"Image file cannot be loaded or is corrupted: {str(e)}")
+            
             # Strategy 1: Try with preprocessed image first
             try:
                 processed = self.preprocessor.preprocess(image_path)
@@ -78,7 +86,7 @@ class OCRService:
             
         except Exception as e:
             logger.error(f"Tesseract OCR extraction failed: {e}")
-            return "", True
+            raise ValueError(f"OCR processing failed: {str(e)}")
     
     def _try_tesseract_configs(self, image_path: Path) -> str:
         """Try multiple Tesseract configurations on preprocessed image."""
