@@ -18,6 +18,9 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download spaCy model during build (avoid runtime timeout)
+RUN python -m spacy download en_core_web_sm
+
 # Copy application code
 COPY . .
 
