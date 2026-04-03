@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Analysis System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #dbeafe;
+            --success: #16a34a;
+            --success-light: #dcfce7;
+            --warning: #ea580c;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --border-radius: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-200);
+            color: var(--gray-900);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-300);
+        }
+
+        .header-subtitle {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background-color: var(--gray-100);
+            color: var(--gray-500);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--gray-900);
+            font-weight: 600;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--gray-50);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            color: var(--gray-700);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-subtext {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: var(--gray-50);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .file-item-name {
+            color: var(--gray-700);
+            flex-grow: 1;
+        }
+
+        .file-item-size {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .file-item-remove {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-box {
+            background-color: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-200);
+        }
+
+        .stat-label {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            color: var(--gray-900);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .analysis-results {
+            display: none;
+        }
+
+        .analysis-results.show {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .result-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .result-content {
+            background-color: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary);
+        }
+
+        .sentiment-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+        }
+
+        .sentiment-label {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 0.875rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .sentiment-positive {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+
+        .sentiment-neutral {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .sentiment-negative {
+            background-color: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .confidence-bar {
+            flex-grow: 1;
+            height: 24px;
+            background-color: var(--gray-200);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            transition: width 0.3s ease;
+        }
+
+        .entity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .entity-group {
+            background-color: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-200);
+        }
+
+        .entity-group-title {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .entity-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .entity-tag {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            background-color: white;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metadata-item {
+            padding: 0.75rem;
+            background-color: var(--gray-50);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-200);
+        }
+
+        .metadata-label {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .metadata-value {
+            color: var(--gray-900);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .ocr-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            background-color: #f0f9ff;
+            color: #0369a1;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-export {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            background-color: var(--gray-200);
+            color: var(--gray-900);
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-export:hover {
+            background-color: var(--gray-300);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--gray-900);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-input-hint {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .processing-indicator {
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+        .processing-indicator.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .error-message {
+            background-color: var(--danger-light);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--danger);
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .text-preview {
+            background-color: #fef3c7;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            border: 1px solid #fde68a;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .process-button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .process-button-group button {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .main-grid {
+                gap: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .entity-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .nothing-selected {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-500);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>Document Analysis</h1>
+                    <p class="header-subtitle">Analyze documents with AI-powered insights</p>
+                </div>
+                <div class="header-actions">
+                    <div id="visionStatus" class="status-badge status-inactive">
+                        <span class="status-indicator"></span>
+                        <span>Vision API: Inactive</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="openAPIKeyModal()">API Settings</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="card">
+                <h2>Upload Files</h2>
+                
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drop files here or click to browse</div>
+                    <div class="upload-subtext">Supports PDF, DOCX, JPG, PNG (Max 20MB)</div>
+                </div>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.docx,.jpg,.jpeg,.png,.tif,.tiff">
+
+                <div class="file-list" id="fileList"></div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Files Selected</div>
+                        <div class="stat-value" id="fileCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Size</div>
+                        <div class="stat-value" id="totalSize">0 B</div>
+                    </div>
+                </div>
+
+                <div class="process-button-group">
+                    <button class="btn btn-secondary" onclick="clearFiles()" style="flex: 1;">Clear All</button>
+                    <button class="btn btn-primary" onclick="processFiles()" style="flex: 1;">Analyze Files</button>
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div class="card">
+                <h2>Analysis Results</h2>
+                <div id="errorMessage" class="error-message"></div>
+                <div id="processingIndicator" class="processing-indicator">
+                    <div class="spinner"></div>
+                    <div class="loading-text" id="processingText">Processing file...</div>
+                </div>
+
+                <div id="resultsContainer" class="analysis-results nothing-selected">
+                    <p>Select and analyze files to see results</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="allResults" style="display: none;"></div>
+    </div>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">API Settings</div>
+            <div class="form-group">
+                <label class="form-label">API Key</label>
+                <input type="password" id="apiKeyInput" class="form-input" placeholder="Enter your API key">
+                <p class="form-input-hint">Your API key is stored locally in your browser</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Server URL</label>
+                <input type="text" id="serverUrlInput" class="form-input" placeholder="http://localhost:8001">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeAPIKeyModal()" style="flex: 1;">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAPIKey()" style="flex: 1;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Document Analysis System - Professional OCR & Text Analysis</p>
+    </div>
+
+    <script>
+        // Configuration
+        let selectedFiles = [];
+        let apiKey = localStorage.getItem('apiKey') || 'sk_track2_987654321';
+        let serverUrl = localStorage.getItem('serverUrl') || 'http://127.0.0.1:8001';
+
+        // Check Vision API status on load
+        window.addEventListener('load', () => {
+            checkVisionAPIStatus();
+            document.getElementById('apiKeyInput').value = apiKey;
+            document.getElementById('serverUrlInput').value = serverUrl;
+        });
+
+        // File upload handlers
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            }
+            updateFileList();
+        }
+
+        function updateFileList() {
+            const fileListDiv = document.getElementById('fileList');
+            fileListDiv.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span class="file-item-name">${file.name}</span>
+                    <span class="file-item-size">${(file.size / 1024).toFixed(1)} KB</span>
+                    <button class="file-item-remove" onclick="removeFile(${index})">×</button>
+                `;
+                fileListDiv.appendChild(fileItem);
+            });
+
+            // Update stats
+            document.getElementById('fileCount').textContent = selectedFiles.length;
+            const totalSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+            document.getElementById('totalSize').textContent = formatBytes(totalSize);
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+
+        function clearFiles() {
+            selectedFiles = [];
+            fileInput.value = '';
+            updateFileList();
+            document.getElementById('resultsContainer').classList.remove('show');
+            document.getElementById('resultsContainer').innerHTML = '<p class="nothing-selected">Select and analyze files to see results</p>';
+        }
+
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                showError('Please select at least one file');
+                return;
+            }
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            const processingIndicator = document.getElementById('processingIndicator');
+            const allResultsDiv = document.getElementById('allResults');
+            
+            resultsContainer.classList.add('show');
+            processingIndicator.classList.add('show');
+            resultsContainer.innerHTML = '';
+            allResultsDiv.innerHTML = '';
+            clearError();
+
+            let processedCount = 0;
+
+            for (const file of selectedFiles) {
+                try {
+                    const fileType = getFileType(file.name);
+                    document.getElementById('processingText').textContent = `Processing: ${file.name}...`;
+
+                    // Read file as base64
+                    const fileBase64 = await readFileAsBase64(file);
+
+                    const response = await fetch(`${serverUrl}/api/document-analyze`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey
+                        },
+                        body: JSON.stringify({
+                            fileName: file.name,
+                            fileType: fileType,
+                            fileBase64: fileBase64
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    displayResult(data);
+                    processedCount++;
+                } catch (error) {
+                    showError(`Error processing ${file.name}: ${error.message}`);
+                }
+            }
+
+            processingIndicator.classList.remove('show');
+            
+            if (processedCount === 0) {
+                resultsContainer.innerHTML = '<p class="nothing-selected">No files processed successfully</p>';
+            }
+        }
+
+        function displayResult(data) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            if (resultsContainer.classList.contains('nothing-selected')) {
+                resultsContainer.classList.remove('nothing-selected');
+                resultsContainer.innerHTML = '';
+            }
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'result-section';
+
+            const meta = data.processingMeta || {};
+            const sentiment = data.sentiment || 'Neutral';
+            const confidence = data.confidence || {};
+
+            let ocrIndicator = '';
+            if (meta.ocrUsed) {
+                const method = meta.ocrMethod === 'vision_api' ? 'Vision API' : 'Tesseract';
+                ocrIndicator = `<span class="ocr-indicator">${method}</span>`;
+            }
+
+            let resultHTML = `
+                <div style="border-bottom: 1px solid var(--gray-200); padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <h3 style="color: var(--gray-900); font-size: 1.1rem; font-weight: 600;">${data.fileName}</h3>
+                        <span class="result-badge">${meta.docType || 'Document'}</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; font-size: 0.875rem; color: var(--gray-500);">
+                        <span>${meta.textLength || 0} characters</span>
+                        <span>•</span>
+                        <span>${meta.processingTimeMs || 0}ms</span>
+                        ${ocrIndicator}
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="result-title">Summary</div>
+                    <div class="result-content">
+                        ${data.summary || 'No summary available'}
+                        <div style="margin-top: 0.5rem; color: var(--gray-500); font-size: 0.875rem;">
+                            Confidence: <strong>${(confidence.summary * 100 || 0).toFixed(0)}%</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="result-title">Sentiment</div>
+                    <div class="sentiment-box">
+                        <span class="sentiment-label sentiment-${sentiment.toLowerCase()}">${sentiment}</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${(confidence.sentiment * 100 || 0)}%"></div>
+                        </div>
+                        <span style="font-weight: 600; color: var(--gray-900);">${(confidence.sentiment * 100 || 0).toFixed(0)}%</span>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="result-title">Extracted Entities</div>
+                    <div class="entity-grid">
+                        ${generateEntityHTML('Names', data.entities.names)}
+                        ${generateEntityHTML('Dates', data.entities.dates)}
+                        ${generateEntityHTML('Organizations', data.entities.organizations)}
+                        ${generateEntityHTML('Amounts', data.entities.amounts)}
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="result-title">Text Preview</div>
+                    <div class="text-preview">${(data.extractedTextPreview || '').slice(0, 300)}</div>
+                </div>
+
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <div class="metadata-label">Document Type</div>
+                        <div class="metadata-value">${meta.docType || 'Unknown'}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Processing Time</div>
+                        <div class="metadata-value">${meta.processingTimeMs || 0}ms</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Language</div>
+                        <div class="metadata-value">${meta.language || 'English'}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Entity Confidence</div>
+                        <div class="metadata-value">${(confidence.entities * 100 || 0).toFixed(0)}%</div>
+                    </div>
+                </div>
+
+                <div class="export-buttons">
+                    <button class="btn-export" onclick="copyToClipboard('${data.fileName}')">Copy Results</button>
+                    <button class="btn-export" onclick="downloadAsJSON('${data.fileName}')">Download JSON</button>
+                </div>
+            `;
+
+            resultDiv.innerHTML = resultHTML;
+            resultsContainer.appendChild(resultDiv);
+        }
+
+        function generateEntityHTML(title, items) {
+            if (!items || items.length === 0) {
+                return `
+                    <div class="entity-group">
+                        <div class="entity-group-title">${title}</div>
+                        <div class="entity-items">
+                            <span style="color: var(--gray-400); font-size: 0.85rem;">None found</span>
+                        </div>
+                    </div>
+                `;
+            }
+            return `
+                <div class="entity-group">
+                    <div class="entity-group-title">${title}</div>
+                    <div class="entity-items">
+                        ${items.map(item => `<span class="entity-tag">${item}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (ext === 'pdf') return 'pdf';
+            if (ext === 'docx') return 'docx';
+            if (['jpg', 'jpeg', 'png', 'tif', 'tiff'].includes(ext)) return 'image';
+            return 'unknown';
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Get the base64 string without the data URL prefix
+                    const result = reader.result;
+                    const base64String = result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function clearError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.remove('show');
+        }
+
+        function copyToClipboard(filename) {
+            const results = document.getElementById('resultsContainer').innerText;
+            navigator.clipboard.writeText(results);
+            alert('Results copied to clipboard');
+        }
+
+        function downloadAsJSON(filename) {
+            const results = document.getElementById('resultsContainer').innerHTML;
+            const jsonStr = JSON.stringify(results, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}-results.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function openAPIKeyModal() {
+            document.getElementById('apiKeyModal').classList.add('show');
+        }
+
+        function closeAPIKeyModal() {
+            document.getElementById('apiKeyModal').classList.remove('show');
+        }
+
+        function saveAPIKey() {
+            const key = document.getElementById('apiKeyInput').value;
+            const url = document.getElementById('serverUrlInput').value;
+            
+            if (!key || !url) {
+                alert('Please enter both API key and server URL');
+                return;
+            }
+
+            localStorage.setItem('apiKey', key);
+            localStorage.setItem('serverUrl', url);
+            apiKey = key;
+            serverUrl = url;
+            closeAPIKeyModal();
+            alert('Settings saved');
+        }
+
+        async function checkVisionAPIStatus() {
+            try {
+                const response = await fetch(`${serverUrl}/health`, {
+                    headers: { 'x-api-key': apiKey }
+                });
+                const data = await response.json();
+                
+                const visionStatus = document.getElementById('visionStatus');
+                // Check if Vision API is enabled by making a test call
+                // For now, show status based on whether server responds
+                visionStatus.classList.remove('status-inactive');
+                visionStatus.classList.add('status-active');
+                visionStatus.innerHTML = '<span class="status-indicator"></span><span>Vision API: Check Configuration</span>';
+            } catch (error) {
+                console.warn('Could not check Vision API status:', error);
+            }
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('apiKeyModal');
+            if (event.target == modal) {
+                modal.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

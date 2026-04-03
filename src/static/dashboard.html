@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Document Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #1a1f3a 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .analytics-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-section h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 0.5rem;
+        }
+
+        .chart-bar {
+            background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+            border-radius: 4px 4px 0 0;
+            flex: 1;
+            position: relative;
+            min-height: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .chart-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            background: var(--bg);
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .history-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .sentiment-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .sentiment-positive {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .sentiment-neutral {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
+        .sentiment-negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .insight-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .insight-title {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .insight-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.secondary {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .action-btn.secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard</h1>
+            <div class="nav-links">
+                <a href="/">🏠 Analyzer</a>
+                <a href="/dashboard">📊 Dashboard</a>
+                <a href="/docs">📚 API Docs</a>
+            </div>
+        </header>
+
+        <!-- Summary Stats -->
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-icon">📄</div>
+                <div class="card-number" id="totalDocs">0</div>
+                <div class="card-label">Total Analyzed</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-icon">✅</div>
+                <div class="card-number" id="successRate">0%</div>
+                <div class="card-label">Success Rate</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-icon">⏱️</div>
+                <div class="card-number" id="avgTime">0s</div>
+                <div class="card-label">Avg. Processing Time</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-icon">🎯</div>
+                <div class="card-number" id="avgAccuracy">0%</div>
+                <div class="card-label">Avg. Accuracy</div>
+            </div>
+        </div>
+
+        <!-- Distribution Charts -->
+        <div class="analytics-section">
+            <h2>📈 Document Type Distribution</h2>
+            <div class="chart-container" id="docTypeChart">
+                <div class="insight-card" style="flex: 1;">
+                    <div class="insight-title">PDF Documents</div>
+                    <div class="insight-value" id="pdfCount">0</div>
+                </div>
+                <div class="insight-card" style="flex: 1;">
+                    <div class="insight-title">DOCX Files</div>
+                    <div class="insight-value" id="docxCount">0</div>
+                </div>
+                <div class="insight-card" style="flex: 1;">
+                    <div class="insight-title">Images</div>
+                    <div class="insight-value" id="imageCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentiment Distribution -->
+        <div class="analytics-section">
+            <h2>😊 Sentiment Analysis Trends</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-title">😊 Positive</div>
+                    <div class="insight-value" id="positiveCount">0</div>
+                    <div class="insight-desc">Documents with positive sentiment</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">😐 Neutral</div>
+                    <div class="insight-value" id="neutralCount">0</div>
+                    <div class="insight-desc">Documents with neutral sentiment</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">😞 Negative</div>
+                    <div class="insight-value" id="negativeCount">0</div>
+                    <div class="insight-desc">Documents with negative sentiment</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Entity Extraction Stats -->
+        <div class="analytics-section">
+            <h2>🏷️ Entity Extraction Statistics</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-title">👤 Total Names</div>
+                    <div class="insight-value" id="totalNames">0</div>
+                    <div class="insight-desc">Unique person names extracted</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">📅 Total Dates</div>
+                    <div class="insight-value" id="totalDates">0</div>
+                    <div class="insight-desc">Date references found</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">🏢 Total Organizations</div>
+                    <div class="insight-value" id="totalOrgs">0</div>
+                    <div class="insight-desc">Organization mentions</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">💰 Total Amounts</div>
+                    <div class="insight-value" id="totalAmounts">0</div>
+                    <div class="insight-desc">Monetary amounts identified</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Analyses -->
+        <div class="analytics-section">
+            <h2>📋 Recent Analyses</h2>
+            <div style="overflow-x: auto;">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Sentiment</th>
+                            <th>Entities</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-secondary);">
+                                No analyses yet. Go to the <a href="/" style="color: var(--primary);">Analyzer</a> to get started!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="analytics-section">
+            <h2>⚡ Quick Actions</h2>
+            <div class="quick-actions">
+                <button class="action-btn" onclick="window.location.href='/'">🚀 Analyze New Document</button>
+                <button class="action-btn secondary" onclick="exportAnalytics()">📥 Export Analytics</button>
+                <button class="action-btn secondary" onclick="clearHistory()">🗑️ Clear History</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load analytics from localStorage
+        function loadAnalytics() {
+            const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+            
+            if (history.length === 0) {
+                return;
+            }
+
+            // Calculate stats
+            let totalDocs = history.length;
+            let successCount = history.filter(h => h.status === 'success').length;
+            let totalTime = history.reduce((sum, h) => sum + (h.processingTime || 0), 0);
+            let avgTime = totalTime / totalDocs;
+            let avgAccuracy = history.reduce((sum, h) => sum + (h.confidence || 0), 0) / totalDocs;
+
+            // Update dashboard
+            document.getElementById('totalDocs').textContent = totalDocs;
+            document.getElementById('successRate').textContent = Math.round((successCount / totalDocs) * 100) + '%';
+            document.getElementById('avgTime').textContent = avgTime.toFixed(2) + 's';
+            document.getElementById('avgAccuracy').textContent = Math.round(avgAccuracy * 100) + '%';
+
+            // Document types
+            let pdfCount = history.filter(h => h.fileType === 'pdf').length;
+            let docxCount = history.filter(h => h.fileType === 'docx').length;
+            let imageCount = history.filter(h => h.fileType === 'image').length;
+
+            document.getElementById('pdfCount').textContent = pdfCount;
+            document.getElementById('docxCount').textContent = docxCount;
+            document.getElementById('imageCount').textContent = imageCount;
+
+            // Sentiment
+            let positiveCount = history.filter(h => h.sentiment === 'Positive').length;
+            let neutralCount = history.filter(h => h.sentiment === 'Neutral').length;
+            let negativeCount = history.filter(h => h.sentiment === 'Negative').length;
+
+            document.getElementById('positiveCount').textContent = positiveCount;
+            document.getElementById('neutralCount').textContent = neutralCount;
+            document.getElementById('negativeCount').textContent = negativeCount;
+
+            // Entity stats
+            let totalNames = 0, totalDates = 0, totalOrgs = 0, totalAmounts = 0;
+            history.forEach(h => {
+                totalNames += h.entities?.names?.length || 0;
+                totalDates += h.entities?.dates?.length || 0;
+                totalOrgs += h.entities?.organizations?.length || 0;
+                totalAmounts += h.entities?.amounts?.length || 0;
+            });
+
+            document.getElementById('totalNames').textContent = totalNames;
+            document.getElementById('totalDates').textContent = totalDates;
+            document.getElementById('totalOrgs').textContent = totalOrgs;
+            document.getElementById('totalAmounts').textContent = totalAmounts;
+
+            // Update history table
+            updateHistoryTable(history);
+        }
+
+        function updateHistoryTable(history) {
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = '';
+
+            history.slice(-10).reverse().forEach(item => {
+                const entityCount = (item.entities?.names?.length || 0) +
+                                  (item.entities?.dates?.length || 0) +
+                                  (item.entities?.organizations?.length || 0) +
+                                  (item.entities?.amounts?.length || 0);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.fileName}</td>
+                    <td>${item.fileType.toUpperCase()}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                    <td><span class="sentiment-badge sentiment-${item.sentiment?.toLowerCase()}">${item.sentiment}</span></td>
+                    <td>${entityCount}</td>
+                    <td>${item.processingTime?.toFixed(2)}s</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportAnalytics() {
+            const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+            const csv = generateCSV(history);
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            link.download = 'analytics.csv';
+            link.click();
+        }
+
+        function generateCSV(history) {
+            const headers = ['File Name', 'Type', 'Sentiment', 'Summary', 'Names', 'Dates', 'Organizations', 'Amounts', 'Processing Time'];
+            const rows = history.map(h => [
+                h.fileName,
+                h.fileType,
+                h.sentiment,
+                (h.summary || '').replace(/,/g, ';'),
+                (h.entities?.names || []).join(';'),
+                (h.entities?.dates || []).join(';'),
+                (h.entities?.organizations || []).join(';'),
+                (h.entities?.amounts || []).join(';'),
+                h.processingTime
+            ]);
+
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all history?')) {
+                localStorage.removeItem('analysisHistory');
+                location.reload();
+            }
+        }
+
+        // Load analytics on page load
+        window.addEventListener('load', loadAnalytics);
+    </script>
+</body>
+</html>

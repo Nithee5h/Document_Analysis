@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Analysis System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #1a1f3a 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 6px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            color: var(--text);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-size {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .api-key-input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            border-radius: 6px;
+            color: var(--text);
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        .results {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: 2rem;
+        }
+
+        .result-section h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .summary-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            border-radius: 6px;
+            line-height: 1.8;
+        }
+
+        .entities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .entity-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .entity-title {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: capitalize;
+        }
+
+        .entity-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .entity-item {
+            background: var(--primary);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .entity-item.empty {
+            background: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .sentiment-display {
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .sentiment-positive {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid var(--secondary);
+            color: #22c55e;
+        }
+
+        .sentiment-neutral {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid var(--warning);
+            color: #a855f7;
+        }
+
+        .sentiment-negative {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: #ef4444;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metadata-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .metadata-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .metadata-value {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .export-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .export-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem;">
+            <div>
+                <h1>🤖 AI Document Analysis System</h1>
+                <p class="subtitle">Extract, Analyze & Summarize Documents Instantly</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/" style="padding: 0.75rem 1.5rem; background: var(--primary); color: white; text-decoration: none; border-radius: 6px;">🏠 Analyzer</a>
+                <a href="/static/dashboard.html" style="padding: 0.75rem 1.5rem; background: var(--surface); color: var(--text); text-decoration: none; border-radius: 6px; border: 1px solid var(--border);">📊 Dashboard</a>
+                <a href="/docs" style="padding: 0.75rem 1.5rem; background: var(--surface); color: var(--text); text-decoration: none; border-radius: 6px; border: 1px solid var(--border);">📚 API Docs</a>
+            </div>
+        </header>
+
+        <!-- Stats Section -->
+        <div class="stats" id="statsSection" style="display: none;">
+            <div class="stat-box">
+                <div class="stat-number" id="summaryScore">-</div>
+                <div class="stat-label">Summary Quality</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="entityScore">-</div>
+                <div class="stat-label">Entities Found</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="sentimentScore">-</div>
+                <div class="stat-label">Sentiment</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="processingTime">-</div>
+                <div class="stat-label">Processing Time</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="card">
+                <h2>📤 Upload Document</h2>
+                
+                <input type="text" class="api-key-input" id="apiKey" placeholder="Enter API Key (e.g., sk_track2_987654321)" value="sk_track2_987654321">
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div style="margin-bottom: 0.5rem;">Drag & drop your document here</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">or click to select</div>
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.jpeg,.png,.bmp" multiple="false">
+                </div>
+
+                <div class="file-info" id="fileInfo">
+                    <div class="file-name" id="fileName">-</div>
+                    <div class="file-size" id="fileSize">-</div>
+                </div>
+
+                <button id="analyzeBtn" style="margin-top: 1rem;">🚀 Analyze Document</button>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📄</div>
+                        <div class="feature-title">Multi-Format</div>
+                        <div class="feature-desc">PDF, DOCX, Images</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔐</div>
+                        <div class="feature-title">Secure</div>
+                        <div class="feature-desc">API Key Protected</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">Fast</div>
+                        <div class="feature-desc">Real-time Processing</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <div class="feature-title">Accurate</div>
+                        <div class="feature-desc">AI-Powered Analysis</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="card">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Analyzing your document...</div>
+                </div>
+
+                <!-- Results Preview (shown during analysis) -->
+                <div id="loadingPreview" style="display: none;">
+                    <h2>📊 Analysis Results</h2>
+                    <div style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                        Document is being processed. This will appear here shortly...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Results Section -->
+        <div class="results" id="results">
+            <h2>📊 Analysis Results</h2>
+
+            <!-- Summary -->
+            <div class="result-section">
+                <h3>📝 Summary</h3>
+                <div class="summary-box" id="summaryResult">
+                    No summary available
+                </div>
+            </div>
+
+            <!-- Entities -->
+            <div class="result-section">
+                <h3>🏷️ Extracted Entities</h3>
+                <div class="entities-grid">
+                    <div class="entity-box">
+                        <div class="entity-title">👤 Names</div>
+                        <div class="entity-items" id="namesResult">
+                            <span class="entity-item empty">No names found</span>
+                        </div>
+                    </div>
+                    <div class="entity-box">
+                        <div class="entity-title">📅 Dates</div>
+                        <div class="entity-items" id="datesResult">
+                            <span class="entity-item empty">No dates found</span>
+                        </div>
+                    </div>
+                    <div class="entity-box">
+                        <div class="entity-title">🏢 Organizations</div>
+                        <div class="entity-items" id="organizationsResult">
+                            <span class="entity-item empty">No organizations found</span>
+                        </div>
+                    </div>
+                    <div class="entity-box">
+                        <div class="entity-title">💰 Amounts</div>
+                        <div class="entity-items" id="amountsResult">
+                            <span class="entity-item empty">No amounts found</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sentiment -->
+            <div class="result-section">
+                <h3>😊 Sentiment Analysis</h3>
+                <div id="sentimentResult" class="sentiment-display sentiment-neutral">
+                    Neutral
+                </div>
+            </div>
+
+            <!-- Confidence Scores -->
+            <div class="result-section">
+                <h3>🎯 Confidence Scores</h3>
+                <div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                            <span>Summary Confidence</span>
+                            <span id="summaryConfidence">0%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="summaryConfidenceBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                            <span>Entities Confidence</span>
+                            <span id="entitiesConfidence">0%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="entitiesConfidenceBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                            <span>Sentiment Confidence</span>
+                            <span id="sentimentConfidence">0%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="sentimentConfidenceBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Metadata -->
+            <div class="result-section">
+                <h3>ℹ️ Processing Information</h3>
+                <div class="metadata">
+                    <div class="metadata-item">
+                        <div class="metadata-label">Document Type</div>
+                        <div class="metadata-value" id="docType">-</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">OCR Used</div>
+                        <div class="metadata-value" id="ocrUsed">-</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Text Length</div>
+                        <div class="metadata-value" id="textLength">-</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Language</div>
+                        <div class="metadata-value" id="language">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extracted Text Preview -->
+            <div class="result-section">
+                <h3>📖 Extracted Text Preview</h3>
+                <pre style="background: var(--bg); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); overflow-x: auto; max-height: 300px;" id="textPreview"></pre>
+            </div>
+
+            <!-- Export Options -->
+            <div class="export-buttons">
+                <button class="export-btn" onclick="exportAsJSON()">📥 Export JSON</button>
+                <button class="export-btn" onclick="copyToClipboard()">📋 Copy Results</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMessage = document.getElementById('errorMessage');
+        const apiKeyInput = document.getElementById('apiKey');
+
+        let selectedFile = null;
+
+        // File Upload Handling
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/bmp'];
+            if (!validTypes.includes(file.type)) {
+                showError('Invalid file type. Please upload PDF, DOCX, or image files.');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size exceeds 10MB limit.');
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = `Size: ${(file.size / 1024).toFixed(2)} KB`;
+            fileInfo.classList.add('show');
+            hideError();
+        }
+
+        // Analyze Document
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) {
+                showError('Please select a document first.');
+                return;
+            }
+
+            if (!apiKeyInput.value.trim()) {
+                showError('Please enter an API key.');
+                return;
+            }
+
+            await analyzeDocument();
+        });
+
+        async function analyzeDocument() {
+            results.classList.remove('show');
+            loading.classList.add('show');
+            hideError();
+
+            const startTime = Date.now();
+
+            try {
+                // Read file as base64
+                const base64 = await readFileAsBase64(selectedFile);
+                const fileType = getFileType(selectedFile.type);
+
+                // API Request
+                const response = await fetch('http://localhost:8001/api/document-analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKeyInput.value.trim()
+                    },
+                    body: JSON.stringify({
+                        fileName: selectedFile.name,
+                        fileType: fileType,
+                        fileBase64: base64
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Invalid API key');
+                    }
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+                displayResults(data, processingTime);
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result;
+                    const base64 = result.split(',')[1] || result;
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function getFileType(mimeType) {
+            if (mimeType.includes('pdf')) return 'pdf';
+            if (mimeType.includes('word') || mimeType.includes('wordprocessingml')) return 'docx';
+            if (mimeType.includes('image')) return 'image';
+            return 'image';
+        }
+
+        function displayResults(data, processingTime) {
+            // Summary
+            document.getElementById('summaryResult').textContent = data.summary || 'No summary available';
+
+            // Entities
+            displayEntities('namesResult', data.entities.names);
+            displayEntities('datesResult', data.entities.dates);
+            displayEntities('organizationsResult', data.entities.organizations);
+            displayEntities('amountsResult', data.entities.amounts);
+
+            // Sentiment
+            const sentiment = data.sentiment || 'Neutral';
+            const sentimentEl = document.getElementById('sentimentResult');
+            sentimentEl.textContent = sentiment;
+            sentimentEl.className = `sentiment-display sentiment-${sentiment.toLowerCase()}`;
+
+            // Confidence Scores
+            updateConfidence('summaryConfidence', 'summaryConfidenceBar', data.confidence.summary);
+            updateConfidence('entitiesConfidence', 'entitiesConfidenceBar', data.confidence.entities);
+            updateConfidence('sentimentConfidence', 'sentimentConfidenceBar', data.confidence.sentiment);
+
+            // Metadata
+            document.getElementById('docType').textContent = data.processingMeta.docType || '-';
+            document.getElementById('ocrUsed').textContent = data.processingMeta.ocrUsed ? 'Yes' : 'No';
+            document.getElementById('textLength').textContent = data.processingMeta.textLength + ' chars';
+            document.getElementById('language').textContent = data.processingMeta.language || '-';
+
+            // Text Preview
+            document.getElementById('textPreview').textContent = data.extractedTextPreview || 'No text extracted';
+
+            // Stats
+            updateStats(data, processingTime);
+
+            // Show results
+            results.classList.add('show');
+        }
+
+        function displayEntities(elementId, entities) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+
+            if (!entities || entities.length === 0) {
+                container.innerHTML = '<span class="entity-item empty">None found</span>';
+            } else {
+                entities.forEach(entity => {
+                    const span = document.createElement('span');
+                    span.className = 'entity-item';
+                    span.textContent = entity;
+                    container.appendChild(span);
+                });
+            }
+        }
+
+        function updateConfidence(labelId, barId, value) {
+            const percentage = Math.round(value * 100);
+            document.getElementById(labelId).textContent = percentage + '%';
+            document.getElementById(barId).style.width = percentage + '%';
+        }
+
+        function updateStats(data, processingTime) {
+            const statsSection = document.getElementById('statsSection');
+            const entityCount = (data.entities.names.length + data.entities.dates.length + 
+                               data.entities.organizations.length + data.entities.amounts.length);
+            
+            document.getElementById('summaryScore').textContent = Math.round(data.confidence.summary * 100) + '%';
+            document.getElementById('entityScore').textContent = entityCount;
+            document.getElementById('sentimentScore').textContent = data.sentiment;
+            document.getElementById('processingTime').textContent = processingTime + 's';
+            
+            if (statsSection.style.display === 'none') {
+                statsSection.style.display = 'grid';
+            }
+
+            // Save to analysis history
+            saveToHistory(data, processingTime);
+        }
+
+        function saveToHistory(data, processingTime) {
+            const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+            
+            const analysisRecord = {
+                fileName: data.fileName,
+                fileType: getFileTypeFromData(data.processingMeta.docType),
+                summary: data.summary,
+                sentiment: data.sentiment,
+                entities: data.entities,
+                confidence: (data.confidence.summary + data.confidence.entities + data.confidence.sentiment) / 3,
+                processingTime: parseFloat(processingTime),
+                status: 'success',
+                timestamp: new Date().toISOString()
+            };
+
+            history.push(analysisRecord);
+            localStorage.setItem('analysisHistory', JSON.stringify(history));
+        }
+
+        function getFileTypeFromData(docType) {
+            if (docType === 'invoice' || docType === 'document') return 'pdf';
+            if (docType === 'table') return 'docx';
+            return 'image';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('show');
+        }
+
+        function exportAsJSON() {
+            const resultsText = `
+Summary: ${document.getElementById('summaryResult').textContent}
+
+Names: ${Array.from(document.getElementById('namesResult').children)
+    .map(el => el.textContent).join(', ')}
+
+Dates: ${Array.from(document.getElementById('datesResult').children)
+    .map(el => el.textContent).join(', ')}
+
+Organizations: ${Array.from(document.getElementById('organizationsResult').children)
+    .map(el => el.textContent).join(', ')}
+
+Amounts: ${Array.from(document.getElementById('amountsResult').children)
+    .map(el => el.textContent).join(', ')}
+
+Sentiment: ${document.getElementById('sentimentResult').textContent}
+`;
+            
+            const dataStr = JSON.stringify({ results: resultsText }, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'analysis_results.json';
+            link.click();
+        }
+
+        function copyToClipboard() {
+            const text = `
+Summary: ${document.getElementById('summaryResult').textContent}
+Sentiment: ${document.getElementById('sentimentResult').textContent}
+Names: ${Array.from(document.getElementById('namesResult').children)
+    .map(el => el.textContent).join(', ')}
+Dates: ${Array.from(document.getElementById('datesResult').children)
+    .map(el => el.textContent).join(', ')}
+Organizations: ${Array.from(document.getElementById('organizationsResult').children)
+    .map(el => el.textContent).join(', ')}
+Amounts: ${Array.from(document.getElementById('amountsResult').children)
+    .map(el => el.textContent).join(', ')}
+`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Results copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
