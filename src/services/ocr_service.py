@@ -13,10 +13,20 @@ class OCRService:
     def __init__(self) -> None:
         try:
             pytesseract.pytesseract.tesseract_cmd = settings.tesseract_cmd
+            logger.info(f"Tesseract path set to: {settings.tesseract_cmd}")
         except Exception as e:
-            logger.warning(f"Could not set Tesseract path: {e}")
-        self.preprocessor = ImagePreprocessor()
-        self.google_vision = GoogleVisionOCRService()
+            logger.warning(f"Could not configure Tesseract: {e}. OCR will still attempt to work.")
+        
+        try:
+            self.preprocessor = ImagePreprocessor()
+        except Exception as e:
+            logger.error(f"Failed to initialize ImagePreprocessor: {e}")
+            raise
+        
+        try:
+            self.google_vision = GoogleVisionOCRService()
+        except Exception as e:
+            logger.warning(f"Could not initialize Google Vision: {e}")
 
     def extract_text(self, image_path: Path) -> tuple[str, bool, str]:
         """
@@ -39,14 +49,6 @@ class OCRService:
     def _tesseract_extract(self, image_path: Path) -> tuple[str, bool]:
         """Extract text using Tesseract OCR with multiple strategies."""
         try:
-            # First, validate that we can load the image at all
-            try:
-                test_img = Image.open(image_path)
-                test_img.verify()
-            except Exception as e:
-                logger.error(f"Image file cannot be loaded or is corrupted: {image_path} - {str(e)}")
-                raise ValueError(f"Image file cannot be loaded or is corrupted: {str(e)}")
-            
             # Strategy 1: Try with preprocessed image first
             try:
                 processed = self.preprocessor.preprocess(image_path)
@@ -86,7 +88,7 @@ class OCRService:
             
         except Exception as e:
             logger.error(f"Tesseract OCR extraction failed: {e}")
-            raise ValueError(f"OCR processing failed: {str(e)}")
+            return "", True
     
     def _try_tesseract_configs(self, image_path: Path) -> str:
         """Try multiple Tesseract configurations on preprocessed image."""

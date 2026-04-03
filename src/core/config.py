@@ -22,27 +22,24 @@ class Settings(BaseSettings):
     
     @property
     def tesseract_cmd(self) -> str:
-        """Auto-detect Tesseract path based on OS"""
-        # Check if environment variable is set
+        """Auto-detect Tesseract path for cross-platform compatibility"""
+        # Check environment variable
         if os.environ.get("TESSERACT_CMD"):
-            return os.environ.get("TESSERACT_CMD")
+            return os.environ["TESSERACT_CMD"]
         
-        # Default paths for different systems
-        possible_paths = [
-            "/usr/bin/tesseract",           # Linux (Railway, Docker)
-            "/opt/homebrew/bin/tesseract",  # macOS (M1/M2)
-            "/usr/local/bin/tesseract",     # macOS (Intel)
-            "tesseract",                    # In PATH
-        ]
-        
-        for path in possible_paths:
-            if path == "tesseract":
-                # Will be in PATH
-                return path
+        # Try common Linux paths first (for Railway/Docker)
+        linux_paths = ["/usr/bin/tesseract", "/usr/local/bin/tesseract"]
+        for path in linux_paths:
             if os.path.exists(path):
                 return path
         
-        # Fallback to system PATH
+        # Try macOS paths
+        macos_paths = ["/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract"]
+        for path in macos_paths:
+            if os.path.exists(path):
+                return path
+        
+        # Fallback: assume it's in PATH
         return "tesseract"
 
 
