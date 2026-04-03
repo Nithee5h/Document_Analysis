@@ -19,42 +19,35 @@ class DocumentPipeline:
 
     def process(self, file_path: Path, file_name: str, file_type: str) -> DocumentAnalyzeResponse:
         start_time = time.time()
-        try:
-            text, ocr_used, ocr_method = self.router.extract_text(file_path, file_type)
-            if not text or len(text.strip()) < 10:
-                raise ValueError(f"Could not extract meaningful text from {file_type} file")
-            doc_type = self.classifier.classify(text)
-            entity_block = self.entities.extract(text, doc_type)
-            summary, summary_score = self.summarizer.summarize(text, entity_block, doc_type)
-            sentiment, sentiment_score = self.sentiment.analyze(text, doc_type)
+        text, ocr_used, ocr_method = self.router.extract_text(file_path, file_type)
+        doc_type = self.classifier.classify(text)
+        entity_block = self.entities.extract(text, doc_type)
+        summary, summary_score = self.summarizer.summarize(text, entity_block, doc_type)
+        sentiment, sentiment_score = self.sentiment.analyze(text, doc_type)
 
-            entity_quality_count = sum(
-                len(getattr(entity_block, field)) for field in ["names", "dates", "organizations", "amounts"]
-            )
-            entity_score = 0.75 if entity_quality_count == 0 else min(0.99, 0.70 + (entity_quality_count * 0.03))
+        entity_quality_count = sum(
+            len(getattr(entity_block, field)) for field in ["names", "dates", "organizations", "amounts"]
+        )
+        entity_score = 0.75 if entity_quality_count == 0 else min(0.99, 0.70 + (entity_quality_count * 0.03))
 
-            return DocumentAnalyzeResponse(
-                status="success",
-                fileName=file_name,
-                summary=summary,
-                entities=entity_block,
-                sentiment=sentiment,
-                confidence=ConfidenceBlock(
-                    summary=round(summary_score, 2),
-                    entities=round(entity_score, 2),
-                    sentiment=round(sentiment_score, 2),
-                ),
-                processingMeta=ProcessingMeta(
-                    docType=doc_type,
-                    ocrUsed=ocr_used,
-                    ocrMethod=ocr_method,
-                    textLength=len(text),
-                    language="en",
-                    processingTimeMs=int((time.time() - start_time) * 1000),
-                ),
-                extractedTextPreview=truncate_text(text, 300),
-            )
-        except ValueError as e:
-            raise
-        except Exception as e:
-            raise ValueError(f"Processing failed: {str(e)}")
+        return DocumentAnalyzeResponse(
+            status="success",
+            fileName=file_name,
+            summary=summary,
+            entities=entity_block,
+            sentiment=sentiment,
+            confidence=ConfidenceBlock(
+                summary=round(summary_score, 2),
+                entities=round(entity_score, 2),
+                sentiment=round(sentiment_score, 2),
+            ),
+            processingMeta=ProcessingMeta(
+                docType=doc_type,
+                ocrUsed=ocr_used,
+                ocrMethod=ocr_method,
+                textLength=len(text),
+                language="en",
+                processingTimeMs=int((time.time() - start_time) * 1000),
+            ),
+            extractedTextPreview=truncate_text(text, 300),
+        )
