@@ -13,20 +13,10 @@ class OCRService:
     def __init__(self) -> None:
         try:
             pytesseract.pytesseract.tesseract_cmd = settings.tesseract_cmd
-            logger.info(f"Tesseract path set to: {settings.tesseract_cmd}")
         except Exception as e:
-            logger.warning(f"Could not configure Tesseract: {e}. OCR will still attempt to work.")
-        
-        try:
-            self.preprocessor = ImagePreprocessor()
-        except Exception as e:
-            logger.error(f"Failed to initialize ImagePreprocessor: {e}")
-            raise
-        
-        try:
-            self.google_vision = GoogleVisionOCRService()
-        except Exception as e:
-            logger.warning(f"Could not initialize Google Vision: {e}")
+            logger.warning(f"Could not set Tesseract path: {e}")
+        self.preprocessor = ImagePreprocessor()
+        self.google_vision = GoogleVisionOCRService()
 
     def extract_text(self, image_path: Path) -> tuple[str, bool, str]:
         """

@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
 
 
 class Settings(BaseSettings):
@@ -13,34 +12,13 @@ class Settings(BaseSettings):
     max_file_size_mb: int = 20
     enable_celery: bool = False
     redis_url: str = "redis://localhost:6379/0"
+    tesseract_cmd: str = "/opt/homebrew/bin/tesseract"
     spacy_model: str = "en_core_web_sm"
     
     # Google Cloud Vision Settings
     use_google_vision: bool = False
     google_vision_project_id: str = ""
     google_credentials_path: str = ""
-    
-    @property
-    def tesseract_cmd(self) -> str:
-        """Auto-detect Tesseract path for cross-platform compatibility"""
-        # Check environment variable
-        if os.environ.get("TESSERACT_CMD"):
-            return os.environ["TESSERACT_CMD"]
-        
-        # Try common Linux paths first (for Railway/Docker)
-        linux_paths = ["/usr/bin/tesseract", "/usr/local/bin/tesseract"]
-        for path in linux_paths:
-            if os.path.exists(path):
-                return path
-        
-        # Try macOS paths
-        macos_paths = ["/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract"]
-        for path in macos_paths:
-            if os.path.exists(path):
-                return path
-        
-        # Fallback: assume it's in PATH
-        return "tesseract"
 
 
 settings = Settings()
