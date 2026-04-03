@@ -1,14 +1,21 @@
-# 🤖 AI-Powered Document Analysis & Extraction System
+# AI-Powered Document Analysis & Extraction System
 
 ## Overview
 
 This is an intelligent document processing system built with **FastAPI** that leverages AI/ML models to extract, analyze, and summarize content from various document formats. The system provides comprehensive entity extraction, sentiment analysis, and AI-powered summarization for PDF, DOCX, and image documents.
 
-**Live System Status**: ✅ Running on `http://localhost:8001`
+## Project Links
 
+- **Live Deployment (Railway):**  
+  [Live Application](https://documentanalysis-production-201a.up.railway.app/)  
+  *(Note: Trial deployment; may expire after 30 days)*
+
+- **Demo Video:**  
+  [Watch the Walkthrough](https://drive.google.com/file/d/143YWeOze66iS9WBRz-Jve9nB40Mjx77t/view?usp=sharing)
+  
 ---
 
-## 🎯 Key Features
+## Key Features
 
 ### Multi-Format Support
 - ✅ **PDF Documents** - Direct text extraction using PyMuPDF
@@ -31,7 +38,7 @@ This is an intelligent document processing system built with **FastAPI** that le
 
 ---
 
-## 📋 Technical Stack
+## Technical Stack
 
 ### Backend
 - **Framework**: FastAPI 0.116.1
@@ -60,7 +67,7 @@ This is an intelligent document processing system built with **FastAPI** that le
 
 ---
 
-## 🤖 AI Tools Used (Disclosure)
+## AI Tools Used (Disclosure)
 
 **This project uses the following AI/ML models and external AI assistance:**
 
@@ -140,7 +147,7 @@ FastAPI Application (Port 8000)
 
 ---
 
-## 📊 Data Extraction Strategy
+## Data Extraction Strategy
 
 ### Entity Extraction
 - **Named Entities**: Spacy NER for PERSON, ORG, GPE, DATE, MONEY
@@ -172,7 +179,7 @@ FastAPI Application (Port 8000)
 
 ---
 
-## ⚠️ Known Limitations
+## Known Limitations
 
 ### OCR Limitations
 - **Handwritten text**: Tesseract accuracy drops to 20-40% for cursive/handwriting
@@ -214,7 +221,7 @@ FastAPI Application (Port 8000)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.11+
@@ -263,7 +270,7 @@ python -m uvicorn src.main:app --reload --host 127.0.0.1 --port 8001
 
 ---
 
-## 📚 API Documentation
+## API Documentation
 
 ### Authentication
 
@@ -352,7 +359,7 @@ x-api-key: sk_track2_987654321
 
 ---
 
-## 🎨 Web Interface
+## Web Interface
 
 ### Main Analyzer
 Access at: `http://localhost:8001/`
@@ -381,7 +388,7 @@ Access at: `http://localhost:8001/dashboard`
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -411,7 +418,7 @@ LOG_LEVEL=INFO
 
 ---
 
-## 📊 Data Extraction Strategy
+## Data Extraction Strategy
 
 ### 1. Text Extraction
 - **PDF**: Uses PyMuPDF to extract text while preserving layout
@@ -444,7 +451,7 @@ LOG_LEVEL=INFO
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Using the Web UI
 1. Go to `http://localhost:8001`
@@ -476,7 +483,7 @@ Sample test scripts are provided:
 
 ---
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 ### Processing Times (Typical)
 - **PDF (single page)**: 1-2 seconds
@@ -495,7 +502,7 @@ Sample test scripts are provided:
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ### Build and Run with Docker Compose
 ```bash
@@ -510,7 +517,7 @@ This will:
 
 ---
 
-## 📝 Project Structure
+## Project Structure
 
 ```
 Document_Analysis/
@@ -557,7 +564,7 @@ Document_Analysis/
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Issue: "Can't find model 'en_core_web_sm'"
 **Solution:**
@@ -585,7 +592,7 @@ lsof -ti:8001 | xargs kill -9
 
 ---
 
-## 🔐 Security Considerations
+## Security Considerations
 
 1. **API Keys**: Store in environment variables, never in code
 2. **File Upload**: Limited to 10MB, validate file types
@@ -595,7 +602,7 @@ lsof -ti:8001 | xargs kill -9
 
 ---
 
-## 📊 Scoring Rubric Alignment
+## Scoring Rubric Alignment
 
 ### API Functionality & Accuracy (90 Points)
 - ✅ **Summary Extraction** (2/2): AI-powered with confidence scores
@@ -615,7 +622,7 @@ lsof -ti:8001 | xargs kill -9
 
 ---
 
-## 🌟 Unique Features (Beyond Requirements)
+## Unique Features (Beyond Requirements)
 
 1. **Web-Based UI** - Beautiful, responsive interface
 2. **Analytics Dashboard** - Track analysis history and statistics
@@ -628,7 +635,7 @@ lsof -ti:8001 | xargs kill -9
 
 ---
 
-## 📞 Support & Contact
+## Support & Contact
 
 For issues, questions, or improvements:
 1. Check the GitHub repository
@@ -638,13 +645,13 @@ For issues, questions, or improvements:
 
 ---
 
-## 📄 License
+## License
 
 This project is submitted for evaluation in the hackathon competition.
 
 ---
 
-## ✨ Final Notes
+## Final Notes
 
 This implementation goes **beyond the baseline requirements** by providing:
 - A production-ready API with proper error handling
@@ -654,7 +661,7 @@ This implementation goes **beyond the baseline requirements** by providing:
 - Support for multiple document types
 - Comprehensive documentation
 
-**Status**: Ready for deployment and evaluation ✅
+**Status**: Ready for deployment and evaluation 
 
 ---
 
